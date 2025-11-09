@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftGigs 🚀 - Cheapest Data, Instant Delivery</title>
+    
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+
+    <style>
+        /* --- CSS Styling (No Changes) --- */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f9;
+            color: #333;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 25px 0;
+            text-align: center;
+            font-size: 1.6em;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .container {
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        input[type="text"], input[type="email"], select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+        .card-price {
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #28a745;
+        }
+        .price {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #dc3545;
+            margin-top: 5px;
+        }
+        .buy-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #ff9900;
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 30px;
+        }
+        .buy-button:hover {
+            background-color: #cc7a00;
+        }
+        .secure-note {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.85em;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        SwiftGigs 🚀 - Cheapest Data, Instant Delivery
+    </div>
+
+    <div class="container">
+        <form id="dataOrderForm">
+            <div class="form-group card-price">
+                <label for="dataBundle">Select Your Data Bundle</label>
+                <select id="dataBundle" name="dataBundle" required>
+                    <option value="" disabled selected>--- Choose a Bundle ---</option>
+                    <option value="7.00:$1\text{GB}$:MTN">1GB Data Bundle (MTN) - GHS 7.00</option>
+                    <option value="4.00:$500\text{MB}$:MTN">500MB Data Bundle (MTN) - GHS 4.00</option>
+                    <option value="7.50:$1\text{GB}$:Vodafone">1GB Data Bundle (Vodafone) - GHS 7.50</option>
+                    <option value="4.50:$500\text{MB}$:Vodafone">500MB Data Bundle (Vodafone) - GHS 4.50</option>
+                </select>
+                <div class="price" id="displayPrice">GHS 0.00</div>
+            </div>
+
+            <div class="form-group">
+                <label for="phoneNumber">Recipient Phone Number (e.g., 054xxxxxxx)</label>
+                <input type="text" id="phoneNumber" name="phoneNumber" placeholder="The number that receives the data" required>
+            </div>
+
+            <div class="form-group">
+                <label for="customerEmail">Your Email (For receipt)</label>
+                <input type="email" id="customerEmail" name="customerEmail" placeholder="you@example.com" required>
+            </div>
+
+            <button type="submit" class="buy-button">Pay Now with MoMo Push</button>
+        </form>
+
+        <p class="secure-note">
+            Secure payments processed by Paystack. Your PIN is never shared.
+        </p>
+    </div>
+
+    <script>
+        // --- Core Application Logic ---
+
+        // !!! CHANGE THIS: Replace with your actual Paystack Public Key (starts with pk_...) !!!
+    const PUBLIC_KEY = 'pk_test_c50ee7c57a3ea8372555437ee4c89c179612199a'; 
+
+        // !!! CHANGE THIS: Replace with your actual server verification script URL !!!
+        const CALLBACK_URL = 'https://YOURDOMAIN.com/verify-transaction.php'; 
+
+
+        // Attaching event listeners only after the entire page content is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Event listener for bundle change
+            document.getElementById('dataBundle').addEventListener('change', updatePrice);
+            updatePrice(); // Initialize price display on load
+
+            // Event listener for form submission
+            document.getElementById('dataOrderForm').addEventListener('submit', function(e) {
+                e.preventDefault(); 
+                processPayment(e.target);
+            });
+        });
+
+
+        function updatePrice() {
+            const select = document.getElementById('dataBundle');
+            const priceText = document.getElementById('displayPrice');
+            
+            if (select.value) {
+                const parts = select.value.split(':'); 
+                const price = parseFloat(parts[0]);
+                priceText.textContent = `GHS ${price.toFixed(2)}`;
+            } else {
+                priceText.textContent = `GHS 0.00`;
+            }
+        }
+
+
+        function processPayment(form) {
+            try {
+                const bundleData = form.dataBundle.value.split(':');
+                
+                if (bundleData.length < 3) {
+                    alert('Please select a valid data bundle.');
+                    return;
+                }
+
+                // Paystack requires amount in the lowest currency unit (Pesewas)
+                const amountInPesewas = parseFloat(bundleData[0]) * 100; 
+                const description = bundleData[1].trim(); 
+                const network = bundleData[2].trim();
+                const phoneNumber = form.phoneNumber.value.trim();
+                const customerEmail = form.customerEmail.value.trim();
+
+                // Simple validation check
+                if (amountInPesewas <= 0 || phoneNumber === '' || customerEmail === '') {
+                    alert('Please select a bundle and fill in your phone number and email.');
+                    return;
+                }
+                
+                // Final check before sending to Paystack
+                if (typeof Paystack === 'undefined' || !PUBLIC_KEY.startsWith('pk_')) {
+                    console.error("PAYSTACK ERROR: Paystack library not loaded or Public Key is invalid.");
+                    alert("Payment system error: Please ensure your Public Key is correct and starts with 'pk_'.");
+                    return;
+                }
+
+
+                // Initiate Paystack Payment
+                payWithPaystack(amountInPesewas, description, network, phoneNumber, customerEmail);
+
+            } catch (error) {
+                console.error("Form Processing Error:", error);
+                alert("An unexpected error occurred while preparing your order.");
+            }
+        }
+
+
+        function payWithPaystack(amount, description, network, phoneNumber, customerEmail) {
+            const handler = Paystack.inline({
+                key: PUBLIC_KEY,
+                email: customerEmail,
+                amount: amount,
+                currency: 'GHS', 
+                ref: 'TX_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9), 
+                
+                metadata: { 
+                    custom_fields: [
+                        { display_name: "Recipient Phone", variable_name: "recipient_phone", value: phoneNumber },
+                        { display_name: "Mobile Network", variable_name: "mobile_network", value: network },
+                        { display_name: "Data Bundle", variable_name: "data_bundle", value: description }
+                    ]
+                },
+                
+                callback: function(response) {
+                    // Redirects to your server for final verification and data delivery
+                    window.location.href = `${CALLBACK_URL}?reference=${response.reference}`;
+                },
+                onClose: function() {
+                    alert('Transaction cancelled. Please try again.');
+                },
+                 // Added error handling to catch issues before the pop-up opens
+                onError: function(error) {
+                    console.error("Paystack Checkout Error:", error);
+                    alert("Could not start payment. Please check your console for details.");
+                }
+            });
+
+            // The handler must be opened to start the payment
+            handler.openIframe(); 
+        }
+    </script>
+
+</body>
+</html>
